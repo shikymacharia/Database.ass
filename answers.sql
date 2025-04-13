@@ -1,5 +1,41 @@
 CREATE DATABASE bookstore;
 USE bookstore;
+CREATE TABLE country (
+    country_id INT AUTO_INCREMENT PRIMARY KEY,
+    country_name VARCHAR(100) NOT NULL
+);
+CREATE TABLE address_status (
+    address_status_id INT AUTO_INCREMENT PRIMARY KEY,
+    status_name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE customer (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE address (
+    address_id INT AUTO_INCREMENT PRIMARY KEY,
+    address_line VARCHAR(255) NOT NULL,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    postal_code VARCHAR(20),
+    country_id INT,
+    customer_id INT,
+    address_status_id INT,
+    FOREIGN KEY (country_id) REFERENCES country(country_id),
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+    FOREIGN KEY (address_status_id) REFERENCES address_status(address_status_id)
+);
+
+CREATE TABLE customer_address (
+    customer_address_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    address_id INT,
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+    FOREIGN KEY (address_id) REFERENCES address(address_id)
+);
+
 CREATE TABLE book (
     book_id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
@@ -36,6 +72,24 @@ CREATE TABLE publisher (
     name VARCHAR(100) NOT NULL,
     location VARCHAR(100)
 );
+INSERT INTO country (country_name) VALUES 
+('United States'), ('Canada'), ('United Kingdom'), ('Australia'), ('Germany');
+
+INSERT INTO address_status (status_name) VALUES 
+('Current'), ('Old');
+
+INSERT INTO customer (customer_name) VALUES 
+('Alice Johnson'), ('Bob Smith'), ('Charlie Brown'), ('Diana Prince'), ('Ethan Hunt');
+
+INSERT INTO address (address_line, city, state, postal_code, country_id, customer_id, address_status_id) VALUES 
+('123 Maple Street', 'Springfield', 'IL', '62704', 1, 1, 1),
+('456 Oak Avenue', 'Toronto', 'ON', 'M4B 1B4', 2, 2, 1),
+('789 Pine Road', 'London', '', 'SW1A 1AA', 3, 3, 1),
+('321 Elm Street', 'Sydney', 'NSW', '2000', 4, 4, 2),
+('654 Birch Lane', 'Berlin', '', '10115', 5, 5, 1);
+
+INSERT INTO customer_address (customer_id, address_id) VALUES 
+(1, 1), (2, 2), (3, 3), (4, 4), (5, 5);
 INSERT INTO book_language (language_name) VALUES 
 ('English'), ('French'), ('Spanish'), ('Swahili'), ('German'), ('Italian'), ('Chinese'), ('Japanese'), ('Russian'), ('Arabic');
 INSERT INTO publisher (name, location) VALUES 
@@ -50,3 +104,16 @@ INSERT INTO book_author (book_id, author_id) VALUES
 -- TEST CASES
 -- 1. Find books published after 1950:
 SELECT title, publication_year FROM book WHERE publication_year > 1950;
+
+-- 2. Find customers with current addresses
+SELECT customer_name, address_line, city, state, postal_code 
+FROM customer 
+JOIN address ON customer.customer_id = address.customer_id 
+WHERE address_status_id = 1;
+
+-- 3. List all books written by a specific author (e.g., J.K Rowling)
+SELECT b.title, a.first_name, a.last_name 
+FROM book b 
+JOIN book_author ba ON b.book_id = ba.book_id 
+JOIN author a ON ba.author_id = a.author_id 
+WHERE a.first_name = 'J.K' AND a.last_name = 'Rowling';
